@@ -1,0 +1,41 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment / local configuration
+.env
+.env.*
+
+# Local HTTPS development certificates
+*.pfx
+
+# Docker
+docker-compose.override.yml
+
+# Dotnet temp files
+.dotnet/
