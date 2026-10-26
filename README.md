@@ -53,6 +53,81 @@ Los nombres de host (`usuarios-api`, `lugares-api`, `itinerarios-api`) correspon
 nombres de servicio definidos en el `compose.yaml` del repositorio
 `touringgo-infraestructura`.
 
+## Contrato de URLs del catálogo de lugares
+
+El microservicio de lugares expone sus endpoints bajo `api/lugares`. Como el gateway le
+asigna el prefijo `/lugares`, la URL pública termina con un segmento duplicado
+(`/lugares/api/lugares/...`). Es la misma convención ya usada por `usuarios`
+(`/usuarios/auth/...`), y se mantiene por decisión de no modificar la configuración.
+
+Flujo de una petición (frontend → gateway → lugares-api):
+
+| Frontend (vite / nginx) | Gateway recibe | Forward a `lugares-api` |
+| --- | --- | --- |
+| `GET /api/lugares/api/lugares` | `/lugares/api/lugares` | `GET /api/lugares` |
+| `GET /api/lugares/api/lugares/{id}` | `/lugares/api/lugares/{id}` | `GET /api/lugares/{id}` |
+| `GET /api/lugares/api/lugares/categorias` | `/lugares/api/lugares/categorias` | `GET /api/lugares/categorias` |
+
+### Filtros del catálogo
+
+El endpoint `GET /api/lugares` acepta los siguientes query params (mapean al
+`LugarFiltroDto`):
+
+| Query param | Tipo | Descripción |
+| --- | --- | --- |
+| `barrio` | enum | Filtra por barrio |
+| `tipoLugar` | enum | Filtra por tipo de lugar |
+| `categoriaCodigo` | string | Código lógico de categoría |
+| `soloBajoTecho` | bool | Solo lugares bajo techo (modo lluvia) |
+| `soloAlAireLibre` | bool | Solo al aire libre |
+| `aptoNinos` | bool | Apto para niños |
+| `accesibleMovilidadReducida` | bool | Accesible para movilidad reducida |
+| `ofreceMenuInfantil` | bool | Ofrece menú infantil |
+| `restriccionDietaria` | enum | Filtra por opción dietaria disponible |
+| `nivelPrecio` | short | Nivel de precio máximo (1 a 3) |
+| `busqueda` | string | Búsqueda libre en nombre/descripción/subzona |
+| `latitudReferencia` | decimal | Referencia para ordenar por cercanía |
+| `longitudReferencia` | decimal | Referencia para ordenar por cercanía |
+| `radioMetrosMaximo` | double | Radio máximo en metros (con lat/lon) |
+| `pagina` | int | Número de página (default `1`) |
+| `tamano` | int | Tamaño de página, máx `100` (default `20`) |
+
+La respuesta de búsqueda es `ResultadoPaginadoDto`:
+
+```json
+{
+  "items": [],
+  "total": 0,
+  "pagina": 1,
+  "tamano": 20
+}
+```
+
+### Valores de enums
+
+La API serializa los enums como string en PascalCase (`JsonStringEnumConverter`). El
+binding de query params es case-insensitive, por lo que el frontend puede enviar los
+mismos valores en minúscula.
+
+| Enum | Valores |
+| --- | --- |
+| `BarrioCaba` | `Palermo`, `Recoleta`, `SanTelmo`, `SanNicolas`, `PuertoMadero` |
+| `TipoLugar` | `PuntoInteres`, `Alojamiento`, `NodoUrbano` |
+| `RestriccionDietaria` | `Celiaco`, `Vegano`, `Vegetariano`, `IntoleranteLactosa` |
+| `OrigenLugar` (solo respuesta) | `CuradoLocal`, `GooglePlaces` |
+
+### Categorías (seed)
+
+| Código (`categoriaCodigo`) | Nombre |
+| --- | --- |
+| `cafe_especialidad` | Café de especialidad |
+| `museos_galerias` | Museos y galerías |
+| `parques_aire_libre` | Parques y aire libre |
+| `librerias_diseno` | Librerías y diseño |
+| `bares_vermu` | Bares y vermú |
+| `gastronomia_clasica` | Gastronomía clásica/Bodegón |
+| `cocteleria_autor` | Coctelería de autor |
+
 ## Ejecución
 
 El gateway se levanta junto con el resto de servicios desde `touringgo-infraestructura`:
